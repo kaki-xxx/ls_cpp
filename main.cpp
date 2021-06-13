@@ -17,13 +17,13 @@ int main() {
         std::cout << x.path().filename().generic_u8string() << std::endl;
     }
 
-	struct winsize ws;
+    struct winsize ws;
 
-	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
 		perror("ioctl");
-	}
+    }
 
-	std::cout << "width: " <<  ws.ws_col << std::endl;
-	std::cout << "height: " <<  ws.ws_row << std::endl;
+    std::cout << "width: " <<  ws.ws_col << std::endl;
+    std::cout << "height: " <<  ws.ws_row << std::endl;
     return 0;
 }
