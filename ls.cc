@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <unistd.h>
 #include <filesystem>
@@ -8,6 +9,7 @@
 #include <sys/ioctl.h>
 #include <vector>
 #include "ls.h"
+#include "cxxopts.hpp"
 
 namespace fs = std::filesystem;
 
@@ -24,9 +26,33 @@ TerminalSize GetTerminalSize() {
     return std::move(ret);
 }
 
-Ls::Ls() : terminal_size(GetTerminalSize()) {}
+Ls::Ls(
+    std::vector<std::string> args,
+    cxxopts::ParseResult opts)
+        : target_paths(args) {
+    if (opts.count("l")) {
+        file_displayer = std::unique_ptr<FilesDisplayer>(new FilesDisplayerInLongList());
+    } else {
+        file_displayer = std::unique_ptr<FilesDisplayer>(new FilesDisplayerInColumns());
+    }
+}
 
-void Ls::Run(fs::path target_path) {
+void Ls::Run() {
+    if (target_paths.size() == 0) {
+        file_displayer->DisplayFilesIn(".");
+        return;
+    }
+    for (auto target_path : target_paths) {
+        file_displayer->DisplayFilesIn(target_path);
+    }
+}
+
+FilesDisplayerInColumns::FilesDisplayerInColumns()
+    : terminal_size(GetTerminalSize()) {}
+FilesDisplayerInLongList::FilesDisplayerInLongList()
+    : terminal_size(GetTerminalSize()) {}
+
+void FilesDisplayerInColumns::DisplayFilesIn(fs::path target_path) {
     auto iter = fs::directory_iterator(target_path);
     std::vector filepaths(begin(iter), end(iter));
     std::sort(std::begin(filepaths), std::end(filepaths));
@@ -49,3 +75,5 @@ void Ls::Run(fs::path target_path) {
     }
     std::cout.flags(prev_flags);
 }
+
+void FilesDisplayerInLongList::DisplayFilesIn(fs::path target_path) {}
