@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-class FilesDisplayer {
+class FileInfosDisplayer {
 public:
-    virtual void DisplayFilesIn(std::filesystem::path target_path) = 0;
-    virtual ~FilesDisplayer() {}
+    virtual void DisplayFileInfosIn(std::filesystem::path target_path) = 0;
+    virtual ~FileInfosDisplayer() {}
 };
 
 class Ls {
@@ -20,7 +20,7 @@ public:
     void Run();
 private:
     std::vector<std::string> target_paths;
-    std::unique_ptr<FilesDisplayer> file_displayer;
+    std::unique_ptr<FileInfosDisplayer> file_displayer;
 };
 
 #endif /* LS_H */

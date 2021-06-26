@@ -58,14 +58,14 @@ ListSortedEntriesIn(std::filesystem::path target_path, bool ignore_hidden_file =
     return std::move(ret);
 }
 
-class FilesDisplayerInColumns : public FilesDisplayer {
+class FileInfosDisplayerInColumns : public FileInfosDisplayer {
 public:
-    FilesDisplayerInColumns(DisplayFlags display_flags)
+    FileInfosDisplayerInColumns(DisplayFlags display_flags)
         : m_terminal_size(GetTerminalSize()),
           m_display_flags(display_flags) {}
-    ~FilesDisplayerInColumns() = default;
+    ~FileInfosDisplayerInColumns() = default;
 
-    void DisplayFilesIn(fs::path target_path) {
+    void DisplayFileInfosIn(fs::path target_path) {
         auto filepaths = ListSortedEntriesIn(target_path, m_display_flags.ignore_hidden_file);
         size_t display_len = 0;
         std::vector<std::string> files;
@@ -91,13 +91,21 @@ private:
     DisplayFlags m_display_flags;
 };
 
-class FilesDisplayerInLongList : public FilesDisplayer {
+class FileInfosDisplayerInLongList : public FileInfosDisplayer {
 public:
-    FilesDisplayerInLongList(DisplayFlags display_flags)
+    FileInfosDisplayerInLongList(DisplayFlags display_flags)
         : m_terminal_size(GetTerminalSize()),
           m_display_flags(display_flags) {}
-    ~FilesDisplayerInLongList() = default;
-    void DisplayFilesIn(fs::path target_path) {}
+    ~FileInfosDisplayerInLongList() = default;
+    void DisplayFileInfosIn(fs::path target_path) {
+        auto filepaths = ListSortedEntriesIn(target_path, m_display_flags.ignore_hidden_file);
+        std::vector<std::string> files;
+        files.reserve(filepaths.size());
+        for (const auto& file : filepaths) {
+            std::string filename = file.path().filename().generic_u8string();
+            files.push_back(filename);
+        }
+    }
 private:
     TerminalSize m_terminal_size;
     DisplayFlags m_display_flags;
@@ -113,18 +121,18 @@ Ls::Ls(
         display_flags.ignore_hidden_file = false;
     }
     if (opts.count("l")) {
-        file_displayer = std::unique_ptr<FilesDisplayer>(new FilesDisplayerInLongList(display_flags));
+        file_displayer = std::unique_ptr<FileInfosDisplayer>(new FileInfosDisplayerInLongList(display_flags));
     } else {
-        file_displayer = std::unique_ptr<FilesDisplayer>(new FilesDisplayerInColumns(display_flags));
+        file_displayer = std::unique_ptr<FileInfosDisplayer>(new FileInfosDisplayerInColumns(display_flags));
     }
 }
 
 void Ls::Run() {
     if (target_paths.size() == 0) {
-        file_displayer->DisplayFilesIn(".");
+        file_displayer->DisplayFileInfosIn(".");
         return;
     }
     for (auto target_path : target_paths) {
-        file_displayer->DisplayFilesIn(target_path);
+        file_displayer->DisplayFileInfosIn(target_path);
     }
 }
