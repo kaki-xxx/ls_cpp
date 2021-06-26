@@ -21,11 +21,9 @@ struct TerminalSize {
 
 TerminalSize GetTerminalSize() {
     struct winsize ws;
-
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
         throw std::system_error(errno, std::generic_category(), "Cannot get terminal size information");
     }
-
     TerminalSize ret;
     ret.row = ws.ws_row;
     ret.col = ws.ws_col;
