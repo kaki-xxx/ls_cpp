@@ -13,6 +13,12 @@
 
 namespace fs = std::filesystem;
 
+namespace {
+struct TerminalSize {
+    unsigned short row;
+    unsigned short col;
+};
+
 TerminalSize GetTerminalSize() {
     struct winsize ws;
 
@@ -25,6 +31,56 @@ TerminalSize GetTerminalSize() {
     ret.col = ws.ws_col;
     return std::move(ret);
 }
+
+std::vector<std::filesystem::directory_entry>
+ListSortedEntriesIn(std::filesystem::path target_path) {
+    auto iter = fs::directory_iterator(target_path);
+    std::vector filepaths(begin(iter), end(iter));
+    std::sort(std::begin(filepaths), std::end(filepaths));
+    return std::move(filepaths);
+}
+
+class FilesDisplayerInColumns : public FilesDisplayer {
+public:
+    FilesDisplayerInColumns()
+        : terminal_size(GetTerminalSize()) {}
+    ~FilesDisplayerInColumns() = default;
+
+    void DisplayFilesIn(fs::path target_path) {
+        auto filepaths = ListSortedEntriesIn(target_path);
+        size_t display_len = 0;
+        std::vector<std::string> files;
+        files.reserve(filepaths.size());
+        for (const auto& file : filepaths) {
+            std::string filename = file.path().filename().generic_u8string();
+            files.push_back(filename);
+            display_len = std::max(display_len, filename.length() + 2);
+        }
+        size_t number_per_onerow = terminal_size.col / display_len;
+        size_t number_of_rows = (filepaths.size() + number_per_onerow-1) / number_per_onerow;
+        std::ios::fmtflags prev_flags = std::cout.setf(std::ios::left, std::ios::adjustfield);
+        for (size_t row = 0; row < number_of_rows; row++) {
+            for (size_t col = row; col < filepaths.size(); col += number_of_rows) {
+                std::cout << std::setw(display_len) << files[col];
+            }
+            std::cout << std::endl;
+        }
+        std::cout.flags(prev_flags);
+    }
+private:
+    TerminalSize terminal_size;
+};
+
+class FilesDisplayerInLongList : public FilesDisplayer {
+public:
+    FilesDisplayerInLongList()
+        : terminal_size(GetTerminalSize()) {}
+    ~FilesDisplayerInLongList() = default;
+    void DisplayFilesIn(fs::path target_path) {}
+private:
+    TerminalSize terminal_size;
+};
+} /* unnamed namespace */
 
 Ls::Ls(
     std::vector<std::string> args,
@@ -46,40 +102,3 @@ void Ls::Run() {
         file_displayer->DisplayFilesIn(target_path);
     }
 }
-
-static std::vector<std::filesystem::directory_entry>
-ListSortedEntriesIn(std::filesystem::path target_path) {
-    auto iter = fs::directory_iterator(target_path);
-    std::vector filepaths(begin(iter), end(iter));
-    std::sort(std::begin(filepaths), std::end(filepaths));
-    return std::move(filepaths);
-}
-
-FilesDisplayerInColumns::FilesDisplayerInColumns()
-    : terminal_size(GetTerminalSize()) {}
-FilesDisplayerInLongList::FilesDisplayerInLongList()
-    : terminal_size(GetTerminalSize()) {}
-
-void FilesDisplayerInColumns::DisplayFilesIn(fs::path target_path) {
-    auto filepaths = ListSortedEntriesIn(target_path);
-    size_t display_len = 0;
-    std::vector<std::string> files;
-    files.reserve(filepaths.size());
-    for (const auto& file : filepaths) {
-        std::string filename = file.path().filename().generic_u8string();
-        files.push_back(filename);
-        display_len = std::max(display_len, filename.length() + 2);
-    }
-    size_t number_per_onerow = terminal_size.col / display_len;
-    size_t number_of_rows = (filepaths.size() + number_per_onerow-1) / number_per_onerow;
-    std::ios::fmtflags prev_flags = std::cout.setf(std::ios::left, std::ios::adjustfield);
-    for (size_t row = 0; row < number_of_rows; row++) {
-        for (size_t col = row; col < filepaths.size(); col += number_of_rows) {
-            std::cout << std::setw(display_len) << files[col];
-        }
-        std::cout << std::endl;
-    }
-    std::cout.flags(prev_flags);
-}
-
-void FilesDisplayerInLongList::DisplayFilesIn(fs::path target_path) {}
