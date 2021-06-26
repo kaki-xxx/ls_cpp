@@ -1,6 +1,6 @@
 #include "ls.h"
 
-int main() {
+int main(int argc, char *argv[]) {
     Ls ls;
-    ls.run();
+    ls.run(argc == 1 ? "." : argv[1]);
 }

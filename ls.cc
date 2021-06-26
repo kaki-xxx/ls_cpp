@@ -26,8 +26,8 @@ TerminalSize GetTerminalSize() {
 
 Ls::Ls() : terminal_size(GetTerminalSize()) {}
 
-void Ls::run() {
-    auto iter = fs::directory_iterator(".");
+void Ls::run(fs::path target_path) {
+    auto iter = fs::directory_iterator(target_path);
     std::vector filepaths(begin(iter), end(iter));
     std::sort(std::begin(filepaths), std::end(filepaths));
     size_t display_len = 0;
