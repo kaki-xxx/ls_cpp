@@ -47,15 +47,21 @@ void Ls::Run() {
     }
 }
 
+static std::vector<std::filesystem::directory_entry>
+ListSortedEntriesIn(std::filesystem::path target_path) {
+    auto iter = fs::directory_iterator(target_path);
+    std::vector filepaths(begin(iter), end(iter));
+    std::sort(std::begin(filepaths), std::end(filepaths));
+    return std::move(filepaths);
+}
+
 FilesDisplayerInColumns::FilesDisplayerInColumns()
     : terminal_size(GetTerminalSize()) {}
 FilesDisplayerInLongList::FilesDisplayerInLongList()
     : terminal_size(GetTerminalSize()) {}
 
 void FilesDisplayerInColumns::DisplayFilesIn(fs::path target_path) {
-    auto iter = fs::directory_iterator(target_path);
-    std::vector filepaths(begin(iter), end(iter));
-    std::sort(std::begin(filepaths), std::end(filepaths));
+    auto filepaths = ListSortedEntriesIn(target_path);
     size_t display_len = 0;
     std::vector<std::string> files;
     files.reserve(filepaths.size());

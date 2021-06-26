@@ -20,6 +20,9 @@ public:
     virtual ~FilesDisplayer() {}
 };
 
+static std::vector<std::filesystem::directory_entry>
+ListSortedEntriesIn(std::filesystem::path target_path);
+
 class FilesDisplayerInColumns : public FilesDisplayer {
 public:
     FilesDisplayerInColumns();
