@@ -14,7 +14,7 @@ class Ls {
 public:
     Ls();
     ~Ls() = default;
-    void run(std::filesystem::path target_path);
+    void Run(std::filesystem::path target_path);
 private:
     TerminalSize terminal_size;
 };
