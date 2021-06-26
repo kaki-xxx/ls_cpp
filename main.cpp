@@ -20,7 +20,7 @@ int main() {
     struct winsize ws;
 
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
-		perror("ioctl");
+        perror("ioctl");
     }
 
     std::cout << "width: " <<  ws.ws_col << std::endl;
