@@ -7,6 +7,7 @@ int main(int argc, char *argv[]) {
     cxxopts::Options options("ls", "List information about the FILEs (the current directory by default).");
     options.add_options()
         ("l", "use a long listing format")
+        ("a,all", "do not ignore entries starting with .")
     ;
     try {
         auto result = options.parse(argc, argv);

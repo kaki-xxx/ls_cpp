@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <unistd.h>
@@ -17,6 +18,11 @@ namespace {
 struct TerminalSize {
     unsigned short row;
     unsigned short col;
+};
+
+struct DisplayFlags {
+    bool ignore_hidden_file;
+    DisplayFlags() : ignore_hidden_file(true) {};
 };
 
 TerminalSize GetTerminalSize() {
@@ -38,10 +44,16 @@ ListSortedEntriesIn(std::filesystem::path target_path) {
     return std::move(filepaths);
 }
 
+bool IsHiddenFile(fs::path target) {
+    std::string filename = target.filename().u8string();
+    return filename[0] == '.';
+}
+
 class FilesDisplayerInColumns : public FilesDisplayer {
 public:
-    FilesDisplayerInColumns()
-        : terminal_size(GetTerminalSize()) {}
+    FilesDisplayerInColumns(DisplayFlags display_flags)
+        : m_terminal_size(GetTerminalSize()),
+          m_display_flags(display_flags) {}
     ~FilesDisplayerInColumns() = default;
 
     void DisplayFilesIn(fs::path target_path) {
@@ -50,33 +62,40 @@ public:
         std::vector<std::string> files;
         files.reserve(filepaths.size());
         for (const auto& file : filepaths) {
+            if (m_display_flags.ignore_hidden_file
+                    && IsHiddenFile(file)) {
+                continue;
+            }
             std::string filename = file.path().filename().generic_u8string();
             files.push_back(filename);
-            display_len = std::max(display_len, filename.length() + 2);
+            display_len = std::max(display_len, files.size() + 2);
         }
-        size_t number_per_onerow = terminal_size.col / display_len;
+        size_t number_per_onerow = m_terminal_size.col / display_len;
         size_t number_of_rows = (filepaths.size() + number_per_onerow-1) / number_per_onerow;
         std::ios::fmtflags prev_flags = std::cout.setf(std::ios::left, std::ios::adjustfield);
         for (size_t row = 0; row < number_of_rows; row++) {
-            for (size_t col = row; col < filepaths.size(); col += number_of_rows) {
+            for (size_t col = row; col < files.size(); col += number_of_rows) {
                 std::cout << std::setw(display_len) << files[col];
             }
-            std::cout << std::endl;
+            std::cout << '\n';
         }
         std::cout.flags(prev_flags);
     }
 private:
-    TerminalSize terminal_size;
+    TerminalSize m_terminal_size;
+    DisplayFlags m_display_flags;
 };
 
 class FilesDisplayerInLongList : public FilesDisplayer {
 public:
-    FilesDisplayerInLongList()
-        : terminal_size(GetTerminalSize()) {}
+    FilesDisplayerInLongList(DisplayFlags display_flags)
+        : m_terminal_size(GetTerminalSize()),
+          m_display_flags(display_flags) {}
     ~FilesDisplayerInLongList() = default;
     void DisplayFilesIn(fs::path target_path) {}
 private:
-    TerminalSize terminal_size;
+    TerminalSize m_terminal_size;
+    DisplayFlags m_display_flags;
 };
 } /* unnamed namespace */
 
@@ -84,10 +103,14 @@ Ls::Ls(
     std::vector<std::string> args,
     cxxopts::ParseResult opts)
         : target_paths(args) {
+    DisplayFlags display_flags;
+    if (opts.count("a")) {
+        display_flags.ignore_hidden_file = false;
+    }
     if (opts.count("l")) {
-        file_displayer = std::unique_ptr<FilesDisplayer>(new FilesDisplayerInLongList());
+        file_displayer = std::unique_ptr<FilesDisplayer>(new FilesDisplayerInLongList(display_flags));
     } else {
-        file_displayer = std::unique_ptr<FilesDisplayer>(new FilesDisplayerInColumns());
+        file_displayer = std::unique_ptr<FilesDisplayer>(new FilesDisplayerInColumns(display_flags));
     }
 }
 
