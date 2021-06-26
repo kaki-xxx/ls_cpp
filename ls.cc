@@ -36,17 +36,26 @@ TerminalSize GetTerminalSize() {
     return std::move(ret);
 }
 
-std::vector<std::filesystem::directory_entry>
-ListSortedEntriesIn(std::filesystem::path target_path) {
-    auto iter = fs::directory_iterator(target_path);
-    std::vector filepaths(begin(iter), end(iter));
-    std::sort(std::begin(filepaths), std::end(filepaths));
-    return std::move(filepaths);
-}
-
 bool IsHiddenFile(fs::path target) {
     std::string filename = target.filename().u8string();
     return filename[0] == '.';
+}
+
+std::vector<std::filesystem::directory_entry>
+ListSortedEntriesIn(std::filesystem::path target_path, bool ignore_hidden_file = false) {
+    auto iter = fs::directory_iterator(target_path);
+    std::vector filepaths(begin(iter), end(iter));
+    std::sort(std::begin(filepaths), std::end(filepaths));
+    std::vector<fs::directory_entry> ret;
+    ret.reserve(filepaths.size());
+    for (auto filepath : filepaths) {
+        if (ignore_hidden_file && IsHiddenFile(filepath)) {
+            continue;
+        }
+        ret.push_back(filepath);
+    }
+    ret.shrink_to_fit();
+    return std::move(ret);
 }
 
 class FilesDisplayerInColumns : public FilesDisplayer {
@@ -57,18 +66,14 @@ public:
     ~FilesDisplayerInColumns() = default;
 
     void DisplayFilesIn(fs::path target_path) {
-        auto filepaths = ListSortedEntriesIn(target_path);
+        auto filepaths = ListSortedEntriesIn(target_path, m_display_flags.ignore_hidden_file);
         size_t display_len = 0;
         std::vector<std::string> files;
         files.reserve(filepaths.size());
         for (const auto& file : filepaths) {
-            if (m_display_flags.ignore_hidden_file
-                    && IsHiddenFile(file)) {
-                continue;
-            }
             std::string filename = file.path().filename().generic_u8string();
             files.push_back(filename);
-            display_len = std::max(display_len, files.size() + 2);
+            display_len = std::max(display_len, filename.length() + 2);
         }
         size_t number_per_onerow = m_terminal_size.col / display_len;
         size_t number_of_rows = (filepaths.size() + number_per_onerow-1) / number_per_onerow;
