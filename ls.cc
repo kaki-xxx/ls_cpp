@@ -1,4 +1,7 @@
+#include <cstdint>
+#include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -8,6 +11,10 @@
 #include <filesystem>
 #include <algorithm>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
+#include <utility>
 #include <vector>
 #include "ls.h"
 #include "cxxopts.hpp"
@@ -91,6 +98,52 @@ private:
     DisplayFlags m_display_flags;
 };
 
+struct FileInfo {
+    std::string filetype_permisson;
+    std::size_t hard_link_count;
+    std::string ownername;
+    std::string groupname;
+    std::size_t bytes;
+    std::string access_time;
+    std::string filename;
+};
+
+std::string FormatFiletypeAndPermission(mode_t mode) {
+    std::string ret;
+    if (S_ISDIR(mode)) {
+        ret += "d";
+    } else if (S_ISLNK(mode)) {
+        ret += "l";
+    } else {
+        ret += "-";
+    }
+    for (int i = 2; i >= 0; --i) {
+        ret += (mode >> (3*i+2)) & 1 ? "r" : "-";
+        ret += (mode >> (3*i+1)) & 1 ? "w" : "-";
+        ret += (mode >> (3*i))   & 1 ? "x" : "-";
+    }
+    return std::move(ret);
+}
+
+FileInfo GetFileInfo(fs::path target) {
+    struct stat status;
+    if (lstat(target.c_str(), &status) < 0) {
+        throw std::system_error(errno, std::generic_category(), "Cannot execute stat");
+    }
+    FileInfo file_info;
+    file_info.filetype_permisson = FormatFiletypeAndPermission(status.st_mode);
+    file_info.hard_link_count = status.st_nlink;
+    struct passwd* user_info = getpwuid(status.st_uid);
+    file_info.ownername = user_info->pw_name;
+    struct group* group_info = getgrgid(status.st_gid);
+    file_info.groupname = group_info->gr_name;
+    file_info.bytes = status.st_size;
+    file_info.access_time = std::ctime(&status.st_atim.tv_sec);
+    file_info.access_time.pop_back();
+    file_info.filename = target.filename().u8string();
+    return std::move(file_info);
+}
+
 class FileInfosDisplayerInLongList : public FileInfosDisplayer {
 public:
     FileInfosDisplayerInLongList(DisplayFlags display_flags)
@@ -99,11 +152,48 @@ public:
     ~FileInfosDisplayerInLongList() = default;
     void DisplayFileInfosIn(fs::path target_path) {
         auto filepaths = ListSortedEntriesIn(target_path, m_display_flags.ignore_hidden_file);
-        std::vector<std::string> files;
-        files.reserve(filepaths.size());
-        for (const auto& file : filepaths) {
-            std::string filename = file.path().filename().generic_u8string();
-            files.push_back(filename);
+        std::vector<FileInfo> file_infos;
+        file_infos.reserve(filepaths.size());
+        struct DisplayLen {
+            size_t hard_link_count;
+            size_t filetype_permisson;
+            size_t ownername;
+            size_t groupname;
+            size_t bytes;
+            size_t access_time;
+            size_t filename;
+        } display_len{};
+        display_len.filetype_permisson = 10;
+        display_len.access_time = 24;
+        for (const auto& filepath : filepaths) {
+            auto file_info = GetFileInfo(filepath);
+            display_len.hard_link_count = std::max(display_len.hard_link_count, std::to_string(file_info.hard_link_count).length());
+            display_len.ownername = std::max(display_len.ownername, file_info.ownername.length());
+            display_len.groupname = std::max(display_len.groupname, file_info.groupname.length());
+            display_len.bytes = std::max(display_len.bytes, std::to_string(file_info.bytes).length());
+            display_len.filename = std::max(display_len.filename, file_info.filename.length());
+            file_infos.push_back(file_info);
+        }
+
+        const char *fmt = "%*s %*zd %*s %*s %*zd %*s %*s\n";
+
+        for (auto file_info : file_infos) {
+            std::printf(fmt,
+                display_len.filetype_permisson,
+                file_info.filetype_permisson.c_str(),
+                display_len.hard_link_count,
+                file_info.hard_link_count,
+                display_len.ownername,
+                file_info.ownername.c_str(),
+                display_len.groupname,
+                file_info.groupname.c_str(),
+                display_len.bytes,
+                file_info.bytes,
+                display_len.access_time,
+                file_info.access_time.c_str(),
+                -display_len.filename,
+                file_info.filename.c_str()
+            );
         }
     }
 private:
