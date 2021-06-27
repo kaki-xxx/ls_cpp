@@ -19,8 +19,6 @@
 #include "ls.h"
 #include "cxxopts.hpp"
 
-namespace fs = std::filesystem;
-
 namespace {
 struct TerminalSize {
     unsigned short row;
@@ -48,8 +46,8 @@ bool IsHiddenFile(fs::path target) {
     return filename[0] == '.';
 }
 
-std::vector<std::filesystem::directory_entry>
-ListSortedEntriesIn(std::filesystem::path target_path, bool ignore_hidden_file = false) {
+std::vector<fs::directory_entry>
+ListSortedEntriesIn(fs::path target_path, bool ignore_hidden_file = false) {
     auto iter = fs::directory_iterator(target_path);
     std::vector filepaths(begin(iter), end(iter));
     std::sort(std::begin(filepaths), std::end(filepaths));

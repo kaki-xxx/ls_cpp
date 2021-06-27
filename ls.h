@@ -7,9 +7,11 @@
 #include <string>
 #include <vector>
 
+namespace fs = std::filesystem;
+
 class FileInfosDisplayer {
 public:
-    virtual void DisplayFileInfosIn(std::filesystem::path target_path) = 0;
+    virtual void DisplayFileInfosIn(fs::path target_path) = 0;
     virtual ~FileInfosDisplayer() {}
 };
 
