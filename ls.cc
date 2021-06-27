@@ -220,11 +220,11 @@ Ls::Ls(
         display_flags.ignore_hidden_file = false;
     }
     if (opts.count("l")) {
-        file_displayer = std::unique_ptr<FileInfosDisplayer>(
+        m_file_displayer = std::unique_ptr<FileInfosDisplayer>(
             new FileInfosDisplayerInLongList(display_flags)
         );
     } else {
-        file_displayer = std::unique_ptr<FileInfosDisplayer>(
+        m_file_displayer = std::unique_ptr<FileInfosDisplayer>(
             new FileInfosDisplayerInColumns(display_flags)
         );
     }
@@ -232,10 +232,10 @@ Ls::Ls(
 
 void Ls::Run() {
     if (target_paths.size() == 0) {
-        file_displayer->DisplayFileInfosIn(".");
+        m_file_displayer->DisplayFileInfosIn(".");
         return;
     }
     for (auto target_path : target_paths) {
-        file_displayer->DisplayFileInfosIn(target_path);
+        m_file_displayer->DisplayFileInfosIn(target_path);
     }
 }

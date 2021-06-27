@@ -20,7 +20,7 @@ public:
     void Run();
 private:
     std::vector<std::string> target_paths;
-    std::unique_ptr<FileInfosDisplayer> file_displayer;
+    std::unique_ptr<FileInfosDisplayer> m_file_displayer;
 };
 
 #endif /* LS_H */
