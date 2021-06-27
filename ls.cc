@@ -139,7 +139,7 @@ FileInfo GetFileInfo(fs::path target) {
     file_info.groupname = group_info->gr_name;
     file_info.bytes = status.st_size;
     file_info.access_time = std::ctime(&status.st_atim.tv_sec);
-    file_info.access_time.pop_back();
+    file_info.access_time.pop_back(); /* 改行を除く */
     file_info.filename = target.filename().u8string();
     return std::move(file_info);
 }
@@ -211,7 +211,8 @@ Ls::Ls(
         display_flags.ignore_hidden_file = false;
     }
     if (opts.count("l")) {
-        file_displayer = std::unique_ptr<FileInfosDisplayer>(new FileInfosDisplayerInLongList(display_flags));
+        file_displayer
+            = std::unique_ptr<FileInfosDisplayer>(new FileInfosDisplayerInLongList(display_flags));
     } else {
         file_displayer = std::unique_ptr<FileInfosDisplayer>(new FileInfosDisplayerInColumns(display_flags));
     }
