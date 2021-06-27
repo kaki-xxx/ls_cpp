@@ -167,7 +167,9 @@ public:
         display_len.access_time = 24;
         for (const auto& filepath : filepaths) {
             auto file_info = GetFileInfo(filepath);
-            display_len.hard_link_count = std::max(display_len.hard_link_count, std::to_string(file_info.hard_link_count).length());
+            display_len.hard_link_count = std::max(
+                display_len.hard_link_count, std::to_string(file_info.hard_link_count).length()
+            );
             display_len.ownername = std::max(display_len.ownername, file_info.ownername.length());
             display_len.groupname = std::max(display_len.groupname, file_info.groupname.length());
             display_len.bytes = std::max(display_len.bytes, std::to_string(file_info.bytes).length());
@@ -211,10 +213,13 @@ Ls::Ls(
         display_flags.ignore_hidden_file = false;
     }
     if (opts.count("l")) {
-        file_displayer
-            = std::unique_ptr<FileInfosDisplayer>(new FileInfosDisplayerInLongList(display_flags));
+        file_displayer = std::unique_ptr<FileInfosDisplayer>(
+            new FileInfosDisplayerInLongList(display_flags)
+        );
     } else {
-        file_displayer = std::unique_ptr<FileInfosDisplayer>(new FileInfosDisplayerInColumns(display_flags));
+        file_displayer = std::unique_ptr<FileInfosDisplayer>(
+            new FileInfosDisplayerInColumns(display_flags)
+        );
     }
 }
 
