@@ -106,6 +106,7 @@ struct FileInfo {
     std::size_t bytes;
     std::string access_time;
     std::string filename;
+    std::size_t blocks;
 };
 
 std::string FormatFiletypeAndPermission(mode_t mode) {
@@ -141,6 +142,7 @@ FileInfo GetFileInfo(fs::path target) {
     file_info.access_time = std::ctime(&status.st_atim.tv_sec);
     file_info.access_time.pop_back(); /* 改行を除く */
     file_info.filename = target.filename().u8string();
+    file_info.blocks = status.st_blocks;
     return std::move(file_info);
 }
 
@@ -153,6 +155,7 @@ public:
     void DisplayFileInfosIn(fs::path target_path) {
         auto filepaths = ListSortedEntriesIn(target_path, m_display_flags.ignore_hidden_file);
         std::vector<FileInfo> file_infos;
+        size_t total_block = 0;
         file_infos.reserve(filepaths.size());
         struct DisplayLen {
             size_t hard_link_count;
@@ -174,11 +177,15 @@ public:
             display_len.groupname = std::max(display_len.groupname, file_info.groupname.length());
             display_len.bytes = std::max(display_len.bytes, std::to_string(file_info.bytes).length());
             display_len.filename = std::max(display_len.filename, file_info.filename.length());
+            total_block += file_info.blocks;
             file_infos.push_back(file_info);
         }
 
         const char *fmt = "%*s %*zd %*s %*s %*zd %*s %*s\n";
 
+        // GNU lsがブロックを1024bytes単位で表してるのに対し、statのst_blocksは512bytes単位で表すため、GNU lsに合わせる
+        total_block /= 2;
+        std::cout << "total " << total_block << '\n';
         for (auto file_info : file_infos) {
             std::printf(fmt,
                 display_len.filetype_permisson,
