@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <vector>
 #include "ls.cc"
+#include "ls.h"
 
 namespace fs = std::filesystem;
 
@@ -40,3 +41,22 @@ TEST(GetFileInfo, FiletypeAndPermisson) {
     auto file_info1 = GetFileInfo(fs::path(temp_dir) / "test");
     EXPECT_EQ(file_info1.filetype_permisson, "-rw-r--r--");
 }
+
+TEST(CountDisplayWidth, AsciiString) {
+    setlocale(LC_CTYPE, "");
+    std::string s = "AsciiString";
+    EXPECT_EQ(CountDisplayWidth(s), 11);
+}
+
+TEST(CountDisplayWidth, MultiBytesString) {
+    setlocale(LC_CTYPE, "");
+    std::string s = "文字がすべて３バイトになる文字列";
+    EXPECT_EQ(CountDisplayWidth(s), 32);
+}
+
+TEST(CountDisplayWidth, MultyBytesAndAsciiString) {
+    setlocale(LC_CTYPE, "");
+    std::string s = "asciiとマルチバイト文字が混ざった文字列";
+    EXPECT_EQ(CountDisplayWidth(s), 39);
+}
+

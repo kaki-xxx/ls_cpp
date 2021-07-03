@@ -63,6 +63,13 @@ ListSortedEntriesIn(fs::path target_path, bool ignore_hidden_file = false) {
     return std::move(ret);
 }
 
+size_t CountDisplayWidth(std::string s) {
+    size_t len_src = s.length();
+    std::shared_ptr<wchar_t []> buf(new wchar_t [len_src + 1]);
+    size_t len_dest = std::mbstowcs(buf.get(), s.c_str(), len_src);
+    return wcswidth(buf.get(), len_dest);
+}
+
 class FileInfosDisplayerInColumns : public FileInfosDisplayer {
 public:
     FileInfosDisplayerInColumns(DisplayFlags display_flags)
