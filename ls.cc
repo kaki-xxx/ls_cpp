@@ -107,14 +107,14 @@ public:
         for (const auto& file : filepaths) {
             std::string filename = file.path().filename().generic_u8string();
             files.push_back(filename);
-            display_len = std::max(display_len, filename.length() + 2);
+            display_len = std::max(display_len, CountDisplayWidth(filename) + 2);
         }
         size_t number_per_onerow = m_terminal_size.col / display_len;
         size_t number_of_rows = (filepaths.size() + number_per_onerow-1) / number_per_onerow;
         std::ios::fmtflags prev_flags = std::cout.setf(std::ios::left, std::ios::adjustfield);
         for (size_t row = 0; row < number_of_rows; row++) {
             for (size_t col = row; col < files.size(); col += number_of_rows) {
-                std::cout << std::setw(display_len) << files[col];
+                std::cout << FitsStringToTargetWidth(files[col], display_len, Align::Left);
             }
             std::cout << '\n';
         }

@@ -4,6 +4,7 @@
 #include <system_error>
 
 int main(int argc, char *argv[]) {
+    setlocale(LC_CTYPE, "");
     cxxopts::Options options("ls", "List information about the FILEs (the current directory by default).");
     options.add_options()
         ("l", "use a long listing format")
