@@ -73,6 +73,19 @@ TEST(FitsStringToTargetWidth, MultiBytesString) {
     );
 }
 
+TEST(FitsStringToTargetWidth, MultiBytesAndAsciiString) {
+    setlocale(LC_CTYPE, "");
+    std::string s = "asciiとマルチバイト文字が混ざった文字列";
+    EXPECT_EQ(
+        FitsStringToTargetWidth(s, 41, Align::Left),
+        "asciiとマルチバイト文字が混ざった文字列  "
+    );
+    EXPECT_EQ(
+        FitsStringToTargetWidth(s, 41, Align::Right),
+        "  asciiとマルチバイト文字が混ざった文字列"
+    );
+}
+
 TEST(FitsStringToTargetWidth, DisplayWidthIsLargerThanTargetWidth) {
     setlocale(LC_CTYPE, "");
     std::string s = "表示幅が18の文字列";
