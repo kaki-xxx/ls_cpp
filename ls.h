@@ -9,10 +9,10 @@
 
 namespace fs = std::filesystem;
 
-class FileInfosDisplayer {
+class FilesLister {
 public:
-    virtual void DisplayFileInfosIn(fs::path target_path) = 0;
-    virtual ~FileInfosDisplayer() {}
+    virtual void ListFiles(fs::path target_path) = 0;
+    virtual ~FilesLister() {}
 };
 
 class Ls {
@@ -22,7 +22,7 @@ public:
     void Run();
 private:
     std::vector<std::string> target_paths;
-    std::unique_ptr<FileInfosDisplayer> m_file_displayer;
+    std::unique_ptr<FilesLister> m_file_lister;
 };
 
 #endif /* LS_H */
