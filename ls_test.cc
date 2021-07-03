@@ -60,3 +60,24 @@ TEST(CountDisplayWidth, MultyBytesAndAsciiString) {
     EXPECT_EQ(CountDisplayWidth(s), 39);
 }
 
+TEST(FitsStringToTargetWidth, MultiBytesString) {
+    setlocale(LC_CTYPE, "");
+    std::string s = "マルチバイト文字列";
+    EXPECT_EQ(
+        FitsStringToTargetWidth(s, 20, Align::Left),
+        "マルチバイト文字列  "
+    );
+    EXPECT_EQ(
+        FitsStringToTargetWidth(s, 20, Align::Right),
+        "  マルチバイト文字列"
+    );
+}
+
+TEST(FitsStringToTargetWidth, DisplayWidthIsLargerThanTargetWidth) {
+    setlocale(LC_CTYPE, "");
+    std::string s = "表示幅が18の文字列";
+    EXPECT_EQ(
+        FitsStringToTargetWidth(s, 10, Align::Left),
+        ""
+    );
+}

@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -68,6 +69,27 @@ size_t CountDisplayWidth(std::string s) {
     std::shared_ptr<wchar_t []> buf(new wchar_t [len_src + 1]);
     size_t len_dest = std::mbstowcs(buf.get(), s.c_str(), len_src);
     return wcswidth(buf.get(), len_dest);
+}
+
+enum class Align {
+    Left,
+    Right,
+};
+
+std::string FitsStringToTargetWidth(std::string s, size_t target_width, Align aligned) {
+    size_t len = s.length();
+    size_t display_width = CountDisplayWidth(s);
+    if (target_width < display_width) {
+        return "";
+    }
+    size_t padding = target_width - display_width;
+    size_t pos = 0;
+    if (aligned == Align::Right) {
+        pos = padding;
+    }
+    std::string ret(s.length() + padding, ' ');
+    s.copy(&ret.data()[pos], ret.length());
+    return ret;
 }
 
 class FileInfosDisplayerInColumns : public FileInfosDisplayer {
