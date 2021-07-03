@@ -30,7 +30,7 @@ struct DisplayFlags {
     DisplayFlags() : ignore_hidden_file(true) {};
 };
 
-TerminalSize GetTerminalSize() {
+TerminalSize LoadTerminalSize() {
     struct winsize ws;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
         throw std::system_error(errno, std::generic_category(), "Cannot get terminal size information");
@@ -66,7 +66,7 @@ ListSortedEntriesIn(fs::path target_path, bool ignore_hidden_file = false) {
 class FileInfosDisplayerInColumns : public FileInfosDisplayer {
 public:
     FileInfosDisplayerInColumns(DisplayFlags display_flags)
-        : m_terminal_size(GetTerminalSize()),
+        : m_terminal_size(LoadTerminalSize()),
           m_display_flags(display_flags) {}
     ~FileInfosDisplayerInColumns() = default;
 
@@ -147,7 +147,7 @@ FileInfo GetFileInfo(fs::path target) {
 class FileInfosDisplayerInLongList : public FileInfosDisplayer {
 public:
     FileInfosDisplayerInLongList(DisplayFlags display_flags)
-        : m_terminal_size(GetTerminalSize()),
+        : m_terminal_size(LoadTerminalSize()),
           m_display_flags(display_flags) {}
     ~FileInfosDisplayerInLongList() = default;
     void DisplayFileInfosIn(fs::path target_path) {
