@@ -7,7 +7,7 @@
 
 std::string VersionInfo() {
     char buf[16];
-    std::snprintf(buf, sizeof(buf) - 1, "ls (%d.%d)", LS_VERSION_MAJOR, LS_VERSION_MINOR);
+    std::snprintf(buf, sizeof(buf), "ls (%d.%d)", LS_VERSION_MAJOR, LS_VERSION_MINOR);
     return std::string(buf);
 }
 
