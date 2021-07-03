@@ -162,8 +162,14 @@ FileInfo GetFileInfo(fs::path target) {
     file_info.filetype_permisson = FormatFiletypeAndPermission(status.st_mode);
     file_info.hard_link_count = status.st_nlink;
     struct passwd* user_info = getpwuid(status.st_uid);
+    if (user_info == nullptr) {
+        throw std::system_error(errno, std::generic_category(), "Cannot get user information");
+    }
     file_info.ownername = user_info->pw_name;
     struct group* group_info = getgrgid(status.st_gid);
+    if (group_info == nullptr) {
+        throw std::system_error(errno, std::generic_category(), "Cannot group user information");
+    }
     file_info.groupname = group_info->gr_name;
     file_info.bytes = status.st_size;
     file_info.access_time = std::ctime(&status.st_atim.tv_sec);
