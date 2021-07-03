@@ -1,0 +1,7 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define LS_VERSION_MAJOR @ls_VERSION_MAJOR@
+#define LS_VERSION_MINOR @ls_VERSION_MINOR@
+
+#endif /* CONFIG_H */

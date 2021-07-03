@@ -3,6 +3,11 @@ project(ls VERSION 0.1)
 enable_testing()
 set(CMAKE_CXX_STANDARD 17)
 add_executable(ls main.cc ls.cc)
+configure_file(config.h.in config.h)
+target_include_directories(ls
+    PUBLIC
+        "${PROJECT_BINARY_DIR}"
+)
 target_precompile_headers(ls
     PUBLIC
         cxxopts.hpp
