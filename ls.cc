@@ -153,7 +153,7 @@ std::string FormatFiletypeAndPermission(mode_t mode) {
     return std::move(ret);
 }
 
-FileInfo GetFileInfo(fs::path target) {
+FileInfo LoadFileInfo(fs::path target) {
     struct stat status;
     if (lstat(target.c_str(), &status) < 0) {
         throw std::system_error(errno, std::generic_category(), "Cannot execute stat");
@@ -202,7 +202,7 @@ public:
         display_len.filetype_permisson = 10;
         display_len.access_time = 24;
         for (const auto& filepath : filepaths) {
-            auto file_info = GetFileInfo(filepath);
+            auto file_info = LoadFileInfo(filepath);
             display_len.hard_link_count = std::max(
                 display_len.hard_link_count, std::to_string(file_info.hard_link_count).length()
             );

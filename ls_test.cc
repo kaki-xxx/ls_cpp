@@ -38,7 +38,7 @@ TEST(ListSortedEntriesIn, IgnoreHiddenFile) {
 
 TEST(GetFileInfo, FiletypeAndPermisson) {
     auto temp_dir = MkTempDirAndCreateFiles({"test"});
-    auto file_info1 = GetFileInfo(fs::path(temp_dir) / "test");
+    auto file_info1 = LoadFileInfo(fs::path(temp_dir) / "test");
     EXPECT_EQ(file_info1.filetype_permisson, "-rw-r--r--");
 }
 
