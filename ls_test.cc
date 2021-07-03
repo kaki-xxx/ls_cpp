@@ -22,7 +22,7 @@ std::string MkTempDirAndCreateFiles(std::vector<std::string> files) {
 
 TEST(ListSortedEntriesIn, IsSorted) {
     auto temp_dir = MkTempDirAndCreateFiles({"aaa", "aba", "abb"});
-    auto ret = ListSortedEntriesIn(temp_dir);
+    auto ret = ListSortedFiles(temp_dir);
     EXPECT_EQ(ret[0], fs::path(temp_dir) / "aaa");
     EXPECT_EQ(ret[1], fs::path(temp_dir) / "aba");
     EXPECT_EQ(ret[2], fs::path(temp_dir) / "abb");
@@ -30,9 +30,9 @@ TEST(ListSortedEntriesIn, IsSorted) {
 
 TEST(ListSortedEntriesIn, IgnoreHiddenFile) {
     auto temp_dir = MkTempDirAndCreateFiles({".aaa", "aba", "abb"});
-    auto ret1 = ListSortedEntriesIn(temp_dir, false);
+    auto ret1 = ListSortedFiles(temp_dir, false);
     EXPECT_EQ(ret1.size(), 3);
-    auto ret2 = ListSortedEntriesIn(temp_dir, true);
+    auto ret2 = ListSortedFiles(temp_dir, true);
     EXPECT_EQ(ret2.size(), 2);
 }
 

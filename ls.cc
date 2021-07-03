@@ -48,7 +48,7 @@ bool IsHiddenFile(fs::path target) {
 }
 
 std::vector<fs::directory_entry>
-ListSortedEntriesIn(fs::path target_path, bool ignore_hidden_file = false) {
+ListSortedFiles(fs::path target_path, bool ignore_hidden_file = false) {
     auto iter = fs::directory_iterator(target_path);
     std::vector filepaths(begin(iter), end(iter));
     std::sort(std::begin(filepaths), std::end(filepaths));
@@ -100,7 +100,7 @@ public:
     ~FilesListerInColumns() = default;
 
     void ListFiles(fs::path target_path) {
-        auto filepaths = ListSortedEntriesIn(target_path, m_display_flags.ignore_hidden_file);
+        auto filepaths = ListSortedFiles(target_path, m_display_flags.ignore_hidden_file);
         size_t display_len = 0;
         std::vector<std::string> files;
         files.reserve(filepaths.size());
@@ -186,7 +186,7 @@ public:
           m_display_flags(display_flags) {}
     ~FilesListerInLongList() = default;
     void ListFiles(fs::path target_path) {
-        auto filepaths = ListSortedEntriesIn(target_path, m_display_flags.ignore_hidden_file);
+        auto filepaths = ListSortedFiles(target_path, m_display_flags.ignore_hidden_file);
         std::vector<FileInfo> file_infos;
         size_t total_block = 0;
         file_infos.reserve(filepaths.size());
